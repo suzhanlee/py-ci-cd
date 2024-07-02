@@ -1,14 +1,21 @@
-# Use a multi-stage build to create a lean production image
 # Stage 1: Build
-FROM maven:3.6.3-jdk-11 as build
+FROM gradle:8.8-jdk17 as build
+
 WORKDIR /app
-COPY pom.xml .
+
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle ./gradle
+
 COPY src ./src
-RUN mvn clean package -DskipTests
+
+RUN ./gradlew build -x test
 
 # Stage 2: Run
-FROM openjdk:11-jre-slim
+FROM openjdk:17-jdk-slim
+
 WORKDIR /app
-COPY --from=build /app/target/demo-0.0.1-SNAPSHOT.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+COPY --from=build /app/build/libs/*.jar dev.jar
+
+ENTRYPOINT ["java", "-jar", "dev.jar"]
 EXPOSE 8080
