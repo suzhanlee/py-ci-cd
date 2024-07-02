@@ -1,0 +1,22 @@
+<!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><head>
+    <title>Person Data Entry</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"></head><body><div class="container">
+    <h2 class="mt-4">Data Entry App</h2>
+    <form action="/add" method="post">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" id="name" name="name">
+        </div>
+        <div class="form-group">
+            <label for="number">Number:</label>
+            <input type="text" class="form-control" id="number" name="number">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <br>
+    <h3>Stored Data</h3>
+    <ul class="list-group">
+        <li th:each="person : ${persons}" class="list-group-item">
+            Name: <span th:text="${person.name}"></span>, Number: <span th:text="${person.number}"></span>
+        </li>
+    </ul></div></body></html>
