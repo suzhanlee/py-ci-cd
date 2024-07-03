@@ -1,41 +1,39 @@
 package example.dev.controller;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-
 import example.dev.entity.Person;
-import example.dev.service.PersonService;
-import java.util.Arrays;
+import example.dev.repository.PersonRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
-@WebMvcTest(PersonController.class)
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 public class PersonControllerTest {
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
-    private PersonService personService;
 
     @Autowired
     private WebApplicationContext webApplicationContext;
 
+    @Autowired
+    private PersonRepository personRepository;
+
+    private MockMvc mockMvc;
+
     @BeforeEach
     public void setup() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        personRepository.deleteAll(); // Ensure a clean state before each test
     }
 
     @Test
@@ -43,30 +41,33 @@ public class PersonControllerTest {
         Person person1 = new Person();
         person1.setName("John Doe");
         person1.setNumber("123456789");
+        personRepository.save(person1);
 
         Person person2 = new Person();
         person2.setName("Jane Doe");
         person2.setNumber("987654321");
-
-        given(personService.getAllPersons()).willReturn(Arrays.asList(person1, person2));
+        personRepository.save(person2);
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"))
                 .andExpect(model().attributeExists("persons"));
+
+        // Verify the state of the database
+        assertThat(personRepository.findAll()).hasSize(2);
     }
 
     @Test
     public void testAddPerson() throws Exception {
-        String name = "New Person";
-        String number = "555555555";
-
         mockMvc.perform(post("/add")
-                        .param("name", name)
-                        .param("number", number))
+                        .param("name", "New Person")
+                        .param("number", "555555555"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
 
-        verify(personService).savePerson(new Person(name, number));
+        assertThat(personRepository.findAll()).hasSize(1);
+        Person person = personRepository.findAll().get(0);
+        assertThat(person.getName()).isEqualTo("New Person");
+        assertThat(person.getNumber()).isEqualTo("555555555");
     }
 }
