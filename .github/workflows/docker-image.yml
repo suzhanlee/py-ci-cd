@@ -64,9 +64,17 @@ jobs:
           ECR_REGISTRY: ${{ steps.suzhanlee-ecr.outputs.registry }}
           ECR_REPOSITORY: suzhanlee
           IMAGE_TAG: ${{ github.sha }}
-          SPRING_DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
+
         run: |
           docker build --build-arg SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Create Kubernetes Secret
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          kubectl delete secret db-credentials --ignore-not-found
+          kubectl create secret generic db-credentials \
+            --from-literal=spring.datasource.url=${{ secrets.DATASOURCE_URL }} \
+            --from-literal=spring.datasource.username=${{ secrets.DATASOURCE_USERNAME }} \
+            --from-literal=spring.datasource.password=${{ secrets.DATASOURCE_PASSWORD }}
