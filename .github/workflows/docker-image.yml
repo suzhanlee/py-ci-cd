@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests with Gradle
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://${{ secrets.RDS_ENDPOINT }}:3306/${{ secrets.RDS_DATABASE }}
+          SPRING_DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
           SPRING_DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
           SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
