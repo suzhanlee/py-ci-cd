@@ -73,6 +73,8 @@ jobs:
         env:
           KUBECONFIG: ${{ secrets.KUBECONFIG }}
         run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+          export KUBECONFIG=$(pwd)/kubeconfig
           kubectl delete secret db-credentials --ignore-not-found
           kubectl create secret generic db-credentials \
             --from-literal=spring.datasource.url=${{ secrets.DATASOURCE_URL }} \
