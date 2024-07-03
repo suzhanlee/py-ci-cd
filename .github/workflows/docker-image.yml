@@ -12,6 +12,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: 1234
+          MYSQL_DATABASE: example
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,12 +36,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests with Gradle
-        env:
-          SPRING_DATASOURCE_URL: ${{ secrets.DATASOURCE_URL }}
-          SPRING_DATASOURCE_USERNAME: ${{ secrets.DATASOURCE_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DATASOURCE_PASSWORD }}
-          SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
-          SPRING_JPA_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
         run: ./gradlew test
 
   build-and-deploy:
