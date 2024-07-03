@@ -67,57 +67,5 @@ jobs:
         run: |
           docker build --build-arg SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Create clusterrole.yaml
-        run: |
-          cat <<EOF > clusterrole.yaml
-          apiVersion: rbac.authorization.k8s.io/v1
-          kind: ClusterRole
-          metadata:
-            name: secret-manager
-          rules:
-          - apiGroups: [""]
-            resources: ["secrets"]
-            verbs: ["get", "list", "watch", "create", "delete", "update"]
-          - apiGroups: ["rbac.authorization.k8s.io"]
-            resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
-            verbs: ["get", "list", "create", "delete", "update"]
-          EOF
-
-      - name: Create clusterrolebinding.yaml
-        run: |
-          cat <<EOF > clusterrolebinding.yaml
-          apiVersion: rbac.authorization.k8s.io/v1
-          kind: ClusterRoleBinding
-          metadata:
-            name: secret-manager-binding
-          subjects:
-          - kind: User
-            name: suzhanlee
-            apiGroup: rbac.authorization.k8s.io
-          roleRef:
-            kind: ClusterRole
-            name: secret-manager
-            apiGroup: rbac.authorization.k8s.io
-          EOF
-
-      - name: Apply clusterrole and clusterrolebinding
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
-        run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          export KUBECONFIG=$(pwd)/kubeconfig
-          kubectl apply -f clusterrole.yaml
-          kubectl apply -f clusterrolebinding.yaml
-
-      - name: Create Kubernetes Secret
-        env:
-          KUBECONFIG: ${{ secrets.KUBECONFIG }}
-        run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          export KUBECONFIG=$(pwd)/kubeconfig
-          kubectl delete secret db-credentials --ignore-not-found
-          kubectl create secret generic db-credentials \
-            --from-literal=spring.datasource.url=${{ secrets.DATASOURCE_URL }} \
-            --from-literal=spring.datasource.username=${{ secrets.DATASOURCE_USERNAME }} \
-            --from-literal=spring.datasource.password=${{ secrets.DATASOURCE_PASSWORD }}
+          
+          
