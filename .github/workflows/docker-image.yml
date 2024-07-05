@@ -65,7 +65,5 @@ jobs:
           ECR_REPOSITORY: suzhanlee
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build --build-arg SPRING_DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build --build-arg DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} --build-arg DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} --build-arg DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          
-          
